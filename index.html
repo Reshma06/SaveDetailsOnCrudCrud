@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <form id="registrationForm">
+        <label>Name:</label>
+        <input type="text" name="username" required>
+        <label>Email:</label>
+        <input type="email" name="emailid" required>
+        <label>Phone Number:</label>
+        <input type="tel" name="phonenumber" required>
+        <br><br>
+        <button type="submit">Submit</button>
+    </form>
+    <ul id="listOfUsers"></ul>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.0/axios.min.js"></script>
+    <script>
+        document.getElementById('registrationForm').addEventListener('submit', function(event) { 
+            event.preventDefault(); 
+
+            const name = event.target.username.value;
+            const email = event.target.emailid.value;
+            const phonenumber = event.target.phonenumber.value;
+
+            const obj = {
+                name,
+                email,
+                phonenumber
+            }
+
+            userDetails = `${name}-${email}-${phonenumber}`;
+            localStorage.setItem(email, userDetails)
+            axios.post('https://crudcrud.com/api/adbf426c0a9645e982d24ba467f9f338/appointmentData', obj )
+                 .then((response) => { 
+                    console.log(response);
+                    showUserOnScreen(email, `${name}-${email}-${phonenumber}`);
+                 })
+                 .catch((err) => { 
+                    console.log(err);
+                 });
+        });
+
+        function showUserOnScreen(email, userValue) {
+            const parentElem = document.getElementById('listOfUsers');
+            const userContainer = document.createElement('div');
+            userContainer.className = 'user-container';
+            userContainer.innerHTML = `
+                <li>${userValue}</li>
+                <button type="button" class="edit" data-email="${email}">Edit</button>
+                <button type="button" class="delete" data-email="${email}">Delete</button>
+            `;
+            parentElem.appendChild(userContainer);
+
+            const editButtons = document.querySelectorAll('.edit');
+            const deleteButtons = document.querySelectorAll('.delete');
+            editButtons.forEach(button => {
+                button.addEventListener('click', editUser);
+            });
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', deleteUser);
+            });
+        }
+
+        function editUser(event) {
+            const emailToEdit = event.target.getAttribute('data-email');
+            const userValue = localStorage.getItem(emailToEdit);
+            if (userValue) {
+                const [name, email, phonenumber] = userValue.split('-');
+                const nameInput = document.querySelector('input[name="username"]');
+                const emailInput = document.querySelector('input[name="emailid"]');
+                const phoneNumberInput = document.querySelector('input[name="phonenumber"]');
+                nameInput.value = name;
+                emailInput.value = email;
+                phoneNumberInput.value = phonenumber;
+
+                localStorage.removeItem(emailToEdit);
+                const userContainer = event.target.parentElement;
+                userContainer.remove();
+            }
+        }
+
+        function deleteUser(event) {
+            const emailToDelete = event.target.getAttribute('data-email');
+            localStorage.removeItem(emailToDelete);
+            const userContainer = event.target.parentElement;
+            userContainer.remove();
+        }
+    </script>
+</body>
+</html>
+
